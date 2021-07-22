@@ -25,7 +25,11 @@ async function main() {
     }
 
     try{
-        await listAllADTInstances(credential)
+        var endPoint = "https://ADT-TwinLogic.api.sea.digitaltwins.azure.net"
+        var aNewADTClient = new DigitalTwinsClient(endPoint, credential)
+        adtClients[endPoint] = aNewADTClient;
+
+        // await listAllADTInstances(credential)
         var httpServerHelper = require("./httpServerHelper.js");
         (new httpServerHelper(adtClients)).createHTTPServer();
     }catch(e){
@@ -35,49 +39,49 @@ async function main() {
 }
 
 
-async function listAllADTInstances(credential) {
-    var token = await credential.getToken("https://management.azure.com/.default");
-    var url = "https://management.azure.com/subscriptions?api-version=2020-01-01"
+// async function listAllADTInstances(credential) {
+//     var token = await credential.getToken("https://management.azure.com/.default");
+//     var url = "https://management.azure.com/subscriptions?api-version=2020-01-01"
 
-    var re = await got.get(url, {
-        headers: {
-            Authorization: "Bearer " + token.token
-        }
-    });
-    var bodyObj = JSON.parse(re.body)
+//     var re = await got.get(url, {
+//         headers: {
+//             Authorization: "Bearer " + token.token
+//         }
+//     });
+//     var bodyObj = JSON.parse(re.body)
 
-    var preferSubscription=null
-    for(var i=0;i<myArgs.length;i++){
-        if(myArgs[i]=="--subscription"){
-            preferSubscription=myArgs[i+1]
-        }
-    }
-    for (var i = 0; i < bodyObj.value.length; i++) {
-        if(preferSubscription!=null && bodyObj.value[i].subscriptionId!=preferSubscription) continue
-        //console.log(bodyObj.value[i].subscriptionId)
-        var aNewADTManagementClient = new AzureDigitalTwinsManagementClient(credential, bodyObj.value[i].subscriptionId)
+//     var preferSubscription=null
+//     for(var i=0;i<myArgs.length;i++){
+//         if(myArgs[i]=="--subscription"){
+//             preferSubscription=myArgs[i+1]
+//         }
+//     }
+//     for (var i = 0; i < bodyObj.value.length; i++) {
+//         if(preferSubscription!=null && bodyObj.value[i].subscriptionId!=preferSubscription) continue
+//         //console.log(bodyObj.value[i].subscriptionId)
+//         var aNewADTManagementClient = new AzureDigitalTwinsManagementClient(credential, bodyObj.value[i].subscriptionId)
         
-        if(Object.keys(adtClients).length === 0){
-            //ensure at least fetch some adt instance, normally they should be in the first few subscriptions
-            await fetchAllADTInstance(aNewADTManagementClient,credential)
-        }else{
-            fetchAllADTInstance(aNewADTManagementClient,credential)
-        }
-    }
-}
+//         if(Object.keys(adtClients).length === 0){
+//             //ensure at least fetch some adt instance, normally they should be in the first few subscriptions
+//             await fetchAllADTInstance(aNewADTManagementClient,credential)
+//         }else{
+//             fetchAllADTInstance(aNewADTManagementClient,credential)
+//         }
+//     }
+// }
 
-async function fetchAllADTInstance(aADTManagementClient,credential){
-    var dtinstances = await aADTManagementClient.digitalTwins.list()
-    if (dtinstances.length == 0) return;
+// async function fetchAllADTInstance(aADTManagementClient,credential){
+//     var dtinstances = await aADTManagementClient.digitalTwins.list()
+//     if (dtinstances.length == 0) return;
 
-    //console.log(bodyObj.value[i].displayName, bodyObj.value[i].subscriptionId)
+//     //console.log(bodyObj.value[i].displayName, bodyObj.value[i].subscriptionId)
 
-    for (var j = 0; j < dtinstances.length; j++) {
-        var endPoint = "https://" + dtinstances[j].hostName
-        var aNewADTClient = new DigitalTwinsClient(endPoint, credential)
-        adtClients[endPoint] = aNewADTClient;
-    }
-}
+//     for (var j = 0; j < dtinstances.length; j++) {
+//         var endPoint = "https://" + dtinstances[j].hostName
+//         var aNewADTClient = new DigitalTwinsClient(endPoint, credential)
+//         adtClients[endPoint] = aNewADTClient;
+//     }
+// }
 
 
 
